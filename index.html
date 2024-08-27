@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image to WebP Converter</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #ab8e8e;
+        }
+        #drop-area {
+            border: 2px dashed #ddd;
+            border-radius: 10px;
+            width: 600px;
+            padding: 20px;
+            text-align: center;
+            background-color: white;
+        }
+        #drop-area.hover {
+            border-color: #333;
+        }
+        #output {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+<div id="drop-area">
+    <h1>Drag & Drop Image Here</h1>
+    <p>or</p>
+    <input type="file" id="fileInput" style="display: none;" accept="image/*">
+
+    <label for="fileInput">U-PLOAD</label>
+
+    <div id="output"></div>
+</div>
+
+<script>
+    const dropArea = document.getElementById('drop-area');
+    const fileInput = document.getElementById('fileInput');
+    const output = document.getElementById('output');
+
+    dropArea.addEventListener('dragover', (event) => {
+        event.preventDefault();
+        dropArea.classList.add('hover');
+    });
+
+    dropArea.addEventListener('dragleave', () => {
+        dropArea.classList.remove('hover');
+    });
+
+    dropArea.addEventListener('drop', (event) => {
+        event.preventDefault();
+        dropArea.classList.remove('hover');
+        const files = event.dataTransfer.files;
+        handleFiles(files);
+    });
+
+    fileInput.addEventListener('change', () => {
+        const files = fileInput.files;
+        handleFiles(files);
+    });
+
+    function handleFiles(files) {
+        for (let file of files) {
+            if (file.type.startsWith('image/')) {
+                convertToWebP(file);
+            } else {
+                alert('Please upload an image file.');
+            }
+        }
+    }
+
+    function convertToWebP(file) {
+        const reader = new FileReader();
+        reader.onload = function(event) {
+            const img = new Image();
+            img.src = event.target.result;
+            img.onload = function() {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                canvas.width = img.width;
+                canvas.height = img.height;
+                ctx.drawImage(img, 0, 0);
+                canvas.toBlob(function(blob) {
+                    const link = document.createElement('a');
+                    link.href = URL.createObjectURL(blob);
+                    link.download = file.name.split('.').slice(0, -1).join('.') + '.webp';
+                    link.textContent = `DOWNLOAD \n ` +  link.download;
+                    output.innerHTML = '';
+                    output.appendChild(link);
+                }, 'image/webp');
+            }
+        };
+        reader.readAsDataURL(file);
+    }
+</script>
+
+</body>
+</html>
